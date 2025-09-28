@@ -3,11 +3,11 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'vercel.app', 'your-backend-url.vercel.app'],
     formats: ['image/webp', 'image/avif'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api',
   },
   // Performance optimizations
   experimental: {
@@ -56,6 +56,12 @@ const nextConfig = {
       },
     ];
   },
+  // Output configuration for static export
+  output: 'standalone',
+  // Trailing slash for better routing
+  trailingSlash: false,
+  // Disable x-powered-by header
+  poweredByHeader: false,
 }
 
 module.exports = nextConfig

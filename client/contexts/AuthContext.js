@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 
 // Set default base URL for all axios requests
-axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
 
 // Export axios instance for use in other files
 export const authAxios = axios;
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = Cookies.get('token');
     if (token) {
-      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setToken(token);
     }
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       const token = Cookies.get('token');
       if (token) {
         try {
-          axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
           const response = await axios.get('/auth/me');
           setUser(response.data.user);
         } catch (error) {
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
       const response = await axios.post('/auth/login', { email, password });
       const { token: newToken, user: userData } = response.data;
       
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
       const response = await axios.post('/auth/register', userData);
       const { token: newToken, user: newUser } = response.data;
       
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      axios.defaults.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://your-backend-url.vercel.app/api';
       await axios.put('/auth/change-password', {
         currentPassword,
         newPassword

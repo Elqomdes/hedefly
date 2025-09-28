@@ -1,0 +1,5 @@
+# Vercel Environment Variables
+# Bu değerleri Vercel dashboard'da Environment Variables bölümünde ayarlayın:
+
+NEXT_PUBLIC_API_URL=https://your-backend-url.vercel.app/api
+NODE_ENV=production
