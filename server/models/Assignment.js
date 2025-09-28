@@ -84,5 +84,17 @@ const assignmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for better performance
+assignmentSchema.index({ teacher: 1 });
+assignmentSchema.index({ class: 1 });
+assignmentSchema.index({ 'students': 1 });
+assignmentSchema.index({ subject: 1 });
+assignmentSchema.index({ type: 1 });
+assignmentSchema.index({ dueDate: 1 });
+assignmentSchema.index({ isActive: 1 });
+assignmentSchema.index({ createdAt: -1 });
+assignmentSchema.index({ 'submissions.student': 1 });
+assignmentSchema.index({ 'submissions.isGraded': 1 });
+
 module.exports = mongoose.model('Assignment', assignmentSchema);
 

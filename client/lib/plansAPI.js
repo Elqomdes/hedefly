@@ -2,38 +2,38 @@ import api from './api';
 
 export const plansAPI = {
   // Get teacher's plans
-  getMyPlans: (params) => api.get('/api/plans/my-plans', { params }),
+  getMyPlans: (params) => api.get('/plans/my-plans', { params }),
 
   // Get student's plans
-  getStudentPlans: (params) => api.get('/api/plans/student-plans', { params }),
+  getStudentPlans: (params) => api.get('/plans/student-plans', { params }),
 
   // Get plan templates
-  getTemplates: (params) => api.get('/api/plans/templates', { params }),
+  getTemplates: (params) => api.get('/plans/templates', { params }),
 
   // Get single plan
-  getPlan: (id) => api.get(`/api/plans/${id}`),
+  getPlan: (id) => api.get(`/plans/${id}`),
 
   // Create new plan
-  create: (data) => api.post('/api/plans/create', data),
+  create: (data) => api.post('/plans/create', data),
 
   // Update plan
-  update: (id, data) => api.put(`/api/plans/${id}`, data),
+  update: (id, data) => api.put(`/plans/${id}`, data),
 
   // Update topic completion
   updateTopic: (planId, subjectIndex, topicIndex, data) => 
-    api.put(`/api/plans/${planId}/topics/${subjectIndex}/${topicIndex}`, data),
+    api.put(`/plans/${planId}/topics/${subjectIndex}/${topicIndex}`, data),
 
   // Update goal completion
   updateGoal: (planId, goalIndex, data) => 
-    api.put(`/api/plans/${planId}/goals/${goalIndex}`, data),
+    api.put(`/plans/${planId}/goals/${goalIndex}`, data),
 
   // Delete plan
-  delete: (id) => api.delete(`/api/plans/${id}`),
+  delete: (id) => api.delete(`/plans/${id}`),
 
   // Duplicate plan as template
-  duplicate: (id, data) => api.post(`/api/plans/${id}/duplicate`, data),
+  duplicate: (id, data) => api.post(`/plans/${id}/duplicate`, data),
 
   // Get students for plan creation
-  getStudents: () => api.get('/api/students/my-students')
+  getStudents: () => api.get('/students/my-students')
 };
 

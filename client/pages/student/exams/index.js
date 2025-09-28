@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import StudentLayout from '../../components/layout/StudentLayout';
+import StudentLayout from '../../../components/layout/StudentLayout';
 import { motion } from 'framer-motion';
 import {
   ClipboardDocumentListIcon,
@@ -13,7 +13,7 @@ import {
   ChartBarIcon,
   PlayIcon
 } from '@heroicons/react/24/outline';
-import { studentsAPI } from '../../lib/api';
+import { studentsAPI } from '../../../lib/api';
 import toast from 'react-hot-toast';
 
 export default function StudentExamsPage() {

@@ -225,6 +225,35 @@ export const handleApiError = (error, defaultMessage = 'Bir hata oluştu') => {
   return message || defaultMessage;
 };
 
+// Database connection error handling
+export const isDatabaseConnectionError = (error) => {
+  return error.response?.status === 503 || 
+         error.response?.status === 202 ||
+         error.response?.data?.error === 'DATABASE_CONNECTION_ERROR';
+};
+
+export const getDatabaseErrorMessage = (error) => {
+  if (isDatabaseConnectionError(error)) {
+    const data = error.response?.data;
+    
+    if (data?.retryAfter) {
+      return `${data.message} (${data.retryAfter} saniye sonra tekrar deneyin)`;
+    }
+    
+    return data?.message || 'Veritabanı bağlantısı yok. Lütfen daha sonra tekrar deneyin.';
+  }
+  
+  return getErrorMessage(error);
+};
+
+export const shouldRetryRequest = (error) => {
+  if (isDatabaseConnectionError(error)) {
+    const data = error.response?.data;
+    return data?.connectionState === 2; // connecting
+  }
+  return false;
+};
+
 // Animation utilities
 export const getAnimationVariants = (type = 'fadeIn') => {
   const variants = {

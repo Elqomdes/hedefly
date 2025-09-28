@@ -51,5 +51,14 @@ const classSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for better performance
+classSchema.index({ teacher: 1 });
+classSchema.index({ 'collaboratingTeachers': 1 });
+classSchema.index({ 'students': 1 });
+classSchema.index({ subject: 1 });
+classSchema.index({ grade: 1 });
+classSchema.index({ isActive: 1 });
+classSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Class', classSchema);
 

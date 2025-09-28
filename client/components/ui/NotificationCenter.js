@@ -15,16 +15,28 @@ export default function NotificationCenter() {
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'assignment', 'exam', 'goal'
   const dropdownRef = useRef(null);
 
-  const {
-    notifications,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-    clearAllNotifications,
-    getNotificationsByType,
-    getUnreadNotifications
-  } = useNotifications();
+  let notifications = [];
+  let unreadCount = 0;
+  let markAsRead = () => {};
+  let markAllAsRead = () => {};
+  let removeNotification = () => {};
+  let clearAllNotifications = () => {};
+  let getNotificationsByType = () => [];
+  let getUnreadNotifications = () => [];
+
+  try {
+    const notificationContext = useNotifications();
+    notifications = notificationContext.notifications || [];
+    unreadCount = notificationContext.unreadCount || 0;
+    markAsRead = notificationContext.markAsRead || (() => {});
+    markAllAsRead = notificationContext.markAllAsRead || (() => {});
+    removeNotification = notificationContext.removeNotification || (() => {});
+    clearAllNotifications = notificationContext.clearAllNotifications || (() => {});
+    getNotificationsByType = notificationContext.getNotificationsByType || (() => []);
+    getUnreadNotifications = notificationContext.getUnreadNotifications || (() => []);
+  } catch (error) {
+    console.warn('NotificationContext not available:', error);
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {

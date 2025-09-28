@@ -113,10 +113,47 @@ const userSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: Date.now
+  },
+  // Notification settings
+  notificationSettings: {
+    emailNotifications: {
+      type: Boolean,
+      default: true
+    },
+    pushNotifications: {
+      type: Boolean,
+      default: true
+    },
+    assignmentReminders: {
+      type: Boolean,
+      default: true
+    },
+    examReminders: {
+      type: Boolean,
+      default: true
+    },
+    goalReminders: {
+      type: Boolean,
+      default: true
+    },
+    weeklyReports: {
+      type: Boolean,
+      default: true
+    }
   }
 }, {
   timestamps: true
 });
+
+// Indexes for better performance
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ studentId: 1 }, { sparse: true });
+userSchema.index({ 'collaboratingTeachers': 1 });
+userSchema.index({ 'teachers': 1 });
+userSchema.index({ 'classes': 1 });
+userSchema.index({ createdAt: -1 });
 
 // Password hashing
 userSchema.pre('save', async function(next) {

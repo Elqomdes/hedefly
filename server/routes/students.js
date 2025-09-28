@@ -76,16 +76,16 @@ router.get('/dashboard', auth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        recentAssignments,
-        recentExams,
-        activePlans,
+        recentAssignments: recentAssignments || [],
+        recentExams: recentExams || [],
+        activePlans: activePlans || [],
         statistics: {
-          totalAssignments,
-          completedAssignments,
-          assignmentCompletionRate,
-          totalExams,
-          completedExams,
-          examCompletionRate
+          totalAssignments: totalAssignments || 0,
+          completedAssignments: completedAssignments || 0,
+          assignmentCompletionRate: assignmentCompletionRate || 0,
+          totalExams: totalExams || 0,
+          completedExams: completedExams || 0,
+          examCompletionRate: examCompletionRate || 0
         }
       }
     });
@@ -554,6 +554,180 @@ router.get('/teachers', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get student teachers error:', error);
+    res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// Submit assignment
+router.post('/assignments/:id/submit', auth, [
+  body('content').notEmpty().trim(),
+  body('attachments').optional().isArray()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const studentId = req.user.id;
+    const assignmentId = req.params.id;
+    const { content, attachments = [] } = req.body;
+
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Ödev bulunamadı' });
+    }
+
+    // Check if student is assigned to this assignment
+    if (!assignment.students.includes(studentId)) {
+      return res.status(403).json({ success: false, message: 'Bu ödeve erişim yetkiniz yok' });
+    }
+
+    // Check if already submitted
+    const existingSubmission = assignment.submissions.find(s => s.student.toString() === studentId);
+    if (existingSubmission) {
+      return res.status(400).json({ success: false, message: 'Bu ödev zaten teslim edilmiş' });
+    }
+
+    // Add submission
+    assignment.submissions.push({
+      student: studentId,
+      content,
+      attachments,
+      submittedAt: new Date(),
+      isGraded: false
+    });
+
+    await assignment.save();
+
+    res.json({
+      success: true,
+      message: 'Ödev başarıyla teslim edildi'
+    });
+  } catch (error) {
+    console.error('Submit assignment error:', error);
+    res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// Submit exam
+router.post('/exams/:id/submit', auth, [
+  body('answers').isArray()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const studentId = req.user.id;
+    const examId = req.params.id;
+    const { answers } = req.body;
+
+    const exam = await Exam.findById(examId);
+    if (!exam) {
+      return res.status(404).json({ success: false, message: 'Sınav bulunamadı' });
+    }
+
+    // Check if student is assigned to this exam
+    const isAssigned = exam.assignedTo.some(a => a.student.toString() === studentId);
+    if (!isAssigned) {
+      return res.status(403).json({ success: false, message: 'Bu sınava erişim yetkiniz yok' });
+    }
+
+    // Check if already submitted
+    const existingResult = exam.results.find(r => r.student.toString() === studentId);
+    if (existingResult) {
+      return res.status(400).json({ success: false, message: 'Bu sınav zaten tamamlanmış' });
+    }
+
+    // Calculate score
+    let correctAnswers = 0;
+    let totalQuestions = exam.questions.length;
+
+    exam.questions.forEach((question, index) => {
+      if (answers[index] === question.correctAnswer) {
+        correctAnswers++;
+      }
+    });
+
+    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+
+    // Add result
+    exam.results.push({
+      student: studentId,
+      answers,
+      score: correctAnswers,
+      totalQuestions,
+      percentage,
+      submittedAt: new Date()
+    });
+
+    await exam.save();
+
+    res.json({
+      success: true,
+      message: 'Sınav başarıyla tamamlandı',
+      data: {
+        score: correctAnswers,
+        totalQuestions,
+        percentage
+      }
+    });
+  } catch (error) {
+    console.error('Submit exam error:', error);
+    res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// Update plan task
+router.put('/plans/:id/tasks/:taskIndex', auth, [
+  body('isCompleted').isBoolean()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const studentId = req.user.id;
+    const planId = req.params.id;
+    const taskIndex = parseInt(req.params.taskIndex);
+    const { isCompleted } = req.body;
+
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Plan bulunamadı' });
+    }
+
+    // Check if student owns this plan
+    if (plan.student.toString() !== studentId) {
+      return res.status(403).json({ success: false, message: 'Bu plana erişim yetkiniz yok' });
+    }
+
+    // Find and update the task
+    let taskFound = false;
+    for (let subjectIndex = 0; subjectIndex < plan.subjects.length; subjectIndex++) {
+      const subject = plan.subjects[subjectIndex];
+      if (taskIndex < subject.topics.length) {
+        subject.topics[taskIndex].completed = isCompleted;
+        taskFound = true;
+        break;
+      }
+    }
+
+    if (!taskFound) {
+      return res.status(404).json({ success: false, message: 'Görev bulunamadı' });
+    }
+
+    await plan.save();
+
+    res.json({
+      success: true,
+      message: 'Görev durumu güncellendi'
+    });
+  } catch (error) {
+    console.error('Update plan task error:', error);
     res.status(500).json({ success: false, message: 'Sunucu hatası' });
   }
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import StudentLayout from '../../components/layout/StudentLayout';
+import StudentLayout from '../../../components/layout/StudentLayout';
 import { motion } from 'framer-motion';
 import {
   BookOpenIcon,
@@ -13,7 +13,7 @@ import {
   EyeIcon,
   LinkIcon
 } from '@heroicons/react/24/outline';
-import { studentsAPI } from '../../lib/api';
+import { studentsAPI } from '../../../lib/api';
 import toast from 'react-hot-toast';
 
 export default function StudentAssignmentsPage() {

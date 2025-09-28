@@ -282,10 +282,16 @@ router.get('/class/:classId', teacherAuth, async (req, res) => {
     const averageExamGrade = totalExamResults > 0 ? 
       totalExamGrades / totalExamResults : 0;
 
-    // Student performance
+    // Student performance - Batch fetch students to avoid N+1 problem
+    const students = await User.find({ 
+      _id: { $in: classObj.students } 
+    }).select('firstName lastName studentId');
+    
+    const studentMap = new Map(students.map(s => [s._id.toString(), s]));
+    
     const studentPerformance = [];
     for (const studentId of classObj.students) {
-      const student = await User.findById(studentId);
+      const student = studentMap.get(studentId.toString());
       if (!student) continue;
 
       const studentAssignments = assignments.filter(a => 

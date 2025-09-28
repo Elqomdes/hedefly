@@ -365,4 +365,84 @@ router.get('/students/:studentId/analytics', teacherAuth, async (req, res) => {
   }
 });
 
+// Get teacher dashboard data
+router.get('/dashboard', teacherAuth, async (req, res) => {
+  try {
+    const teacherId = req.user._id;
+
+    // Get students count
+    const studentsCount = await User.countDocuments({
+      teachers: teacherId,
+      role: 'student'
+    });
+
+    // Get classes count
+    const classesCount = await Class.countDocuments({
+      $or: [
+        { teacher: teacherId },
+        { collaboratingTeachers: teacherId }
+      ],
+      isActive: true
+    });
+
+    // Get assignments count
+    const assignmentsCount = await Assignment.countDocuments({
+      teacher: teacherId,
+      isActive: true
+    });
+
+    // Get exams count
+    const examsCount = await Exam.countDocuments({
+      teacher: teacherId,
+      isActive: true
+    });
+
+    // Get recent assignments
+    const recentAssignments = await Assignment.find({
+      teacher: teacherId,
+      isActive: true
+    })
+    .populate('students', 'firstName lastName studentId')
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+    // Get recent exams
+    const recentExams = await Exam.find({
+      teacher: teacherId,
+      isActive: true
+    })
+    .populate('assignedTo.student', 'firstName lastName studentId')
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+    // Get recent classes
+    const recentClasses = await Class.find({
+      $or: [
+        { teacher: teacherId },
+        { collaboratingTeachers: teacherId }
+      ],
+      isActive: true
+    })
+    .populate('students', 'firstName lastName studentId')
+    .sort({ createdAt: -1 })
+    .limit(5);
+
+    res.json({
+      success: true,
+      data: {
+        students: studentsCount,
+        classes: classesCount,
+        assignments: assignmentsCount,
+        exams: examsCount,
+        recentAssignments,
+        recentExams,
+        recentClasses
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher dashboard error:', error);
+    res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
 module.exports = router;

@@ -21,7 +21,7 @@ export const NotificationProvider = ({ children }) => {
     // In a real app, this would be a WebSocket connection
     const connectWebSocket = () => {
       setIsConnected(true);
-      console.log('Notification WebSocket connected');
+      // WebSocket connected
     };
 
     connectWebSocket();

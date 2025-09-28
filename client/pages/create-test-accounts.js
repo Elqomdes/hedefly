@@ -10,15 +10,28 @@ export default function CreateTestAccounts() {
   const createTestAccounts = async () => {
     try {
       setLoading(true);
+      console.log('Test hesapları oluşturuluyor...');
+      
       const response = await axios.post('/api/auth/create-test-accounts');
       
-      if (response.data.message) {
+      if (response.data.success && response.data.accounts) {
         setAccounts(response.data.accounts);
         toast.success('Test hesapları başarıyla oluşturuldu!');
+        console.log('Test hesapları oluşturuldu:', response.data.accounts);
+      } else {
+        toast.error(response.data.message || 'Test hesapları oluşturulamadı');
       }
     } catch (error) {
       console.error('Create test accounts error:', error);
-      toast.error(error.response?.data?.message || 'Test hesapları oluşturulurken bir hata oluştu');
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Test hesapları oluşturulurken bir hata oluştu';
+      toast.error(errorMessage);
+      
+      // MongoDB bağlantı hatası durumunda özel mesaj
+      if (error.response?.status === 503) {
+        toast.error('Veritabanı bağlantısı yok. Lütfen MongoDB bağlantısını kontrol edin.');
+      }
     } finally {
       setLoading(false);
     }

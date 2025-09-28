@@ -22,7 +22,6 @@ router.post('/register', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-
     const { email, password, firstName, lastName, role, phone, grade, school, parentName, parentPhone } = req.body;
 
     // Check if user already exists
@@ -86,20 +85,26 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
+    console.log(`Login attempt for email: ${email}`);
 
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      console.log(`User not found: ${email}`);
       return res.status(400).json({ message: 'Geçersiz email veya şifre.' });
     }
+
+    console.log(`User found: ${user.email}, Role: ${user.role}, Active: ${user.isActive}`);
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log(`Password mismatch for: ${email}`);
       return res.status(400).json({ message: 'Geçersiz email veya şifre.' });
     }
 
     if (!user.isActive) {
+      console.log(`Inactive account: ${email}`);
       return res.status(400).json({ message: 'Hesabınız deaktif durumda.' });
     }
 
@@ -114,7 +119,10 @@ router.post('/login', [
       { expiresIn: '7d' }
     );
 
+    console.log(`Login successful for: ${email}`);
+
     res.json({
+      success: true,
       message: 'Giriş başarılı',
       token,
       user: {
@@ -129,7 +137,11 @@ router.post('/login', [
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Sunucu hatası' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Sunucu hatası',
+      error: error.message
+    });
   }
 });
 
@@ -311,18 +323,20 @@ router.post('/upload-profile-picture', [
 });
 
 // Create test accounts (only in development)
-router.post('/create-test-accounts', async (req, res) => {
+router.post('/create-test-accounts', checkMongoDBConnection, async (req, res) => {
   try {
-    // Only allow in development
-    if (process.env.NODE_ENV !== 'development') {
+    // Only allow in development or if explicitly enabled
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_TEST_ACCOUNTS !== 'true') {
       return res.status(403).json({ message: 'Bu işlem sadece development modunda kullanılabilir' });
     }
 
+    console.log('Test hesapları oluşturuluyor...');
 
     // Clear existing test accounts
-    await User.deleteMany({
+    const deletedAccounts = await User.deleteMany({
       email: { $in: ['teacher@test.com', 'student@test.com'] }
     });
+    console.log(`Silinen test hesapları: ${deletedAccounts.deletedCount}`);
 
     // Create teacher account
     const teacher = new User({
@@ -335,9 +349,11 @@ router.post('/create-test-accounts', async (req, res) => {
       subjects: ['Matematik', 'Fizik'],
       experience: 5,
       bio: 'Deneyimli matematik ve fizik öğretmeni',
-      isEmailVerified: true
+      isEmailVerified: true,
+      isActive: true
     });
     await teacher.save();
+    console.log('Öğretmen hesabı oluşturuldu:', teacher.email);
 
     // Create student account
     const student = new User({
@@ -351,32 +367,42 @@ router.post('/create-test-accounts', async (req, res) => {
       school: 'Test Lisesi',
       parentName: 'Mehmet Öğrenci',
       parentPhone: '0555 111 22 33',
-      isEmailVerified: true
+      isEmailVerified: true,
+      isActive: true
     });
     await student.save();
+    console.log('Öğrenci hesabı oluşturuldu:', student.email);
 
     // Link student to teacher
     student.teachers.push(teacher._id);
     await student.save();
+    console.log('Öğrenci-öğretmen bağlantısı kuruldu');
 
     res.json({
+      success: true,
       message: 'Test hesapları başarıyla oluşturuldu',
       accounts: {
         teacher: {
           email: 'teacher@test.com',
           password: '123456',
-          role: 'teacher'
+          role: 'teacher',
+          id: teacher._id
         },
         student: {
           email: 'student@test.com',
           password: '123456',
-          role: 'student'
+          role: 'student',
+          id: student._id
         }
       }
     });
   } catch (error) {
     console.error('Create test accounts error:', error);
-    res.status(500).json({ message: 'Test hesapları oluşturulurken bir hata oluştu' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Test hesapları oluşturulurken bir hata oluştu',
+      error: error.message
+    });
   }
 });
 

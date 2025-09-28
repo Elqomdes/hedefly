@@ -31,12 +31,30 @@ api.interceptors.response.use(
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         window.location.href = '/login';
       }
-    } else if (error.response?.status === 503) {
+    } else if (error.response?.status === 503 || error.response?.status === 202) {
       // Database connection error
       if (typeof window !== 'undefined') {
         console.error('Veritabanı bağlantı hatası:', error.response.data);
+        
         // Show user-friendly error message
-        alert('Veritabanı bağlantısı yok. Lütfen daha sonra tekrar deneyin.');
+        import('../utils/helpers').then(({ getDatabaseErrorMessage, shouldRetryRequest }) => {
+          const message = getDatabaseErrorMessage(error);
+          const shouldRetry = shouldRetryRequest(error);
+          
+          // Store error info for retry logic
+          if (shouldRetry) {
+            error.retryable = true;
+            error.retryAfter = error.response?.data?.retryAfter || 5;
+          }
+          
+          // Enhanced error object
+          error.userMessage = message;
+          error.isDatabaseError = true;
+        }).catch(() => {
+          // Fallback if helpers can't be loaded
+          error.userMessage = 'Veritabanı bağlantı hatası. Lütfen daha sonra tekrar deneyin.';
+          error.isDatabaseError = true;
+        });
       }
     }
     return Promise.reject(error);
@@ -173,5 +191,20 @@ export const contactAPI = {
   delete: (id) => api.delete(`/contact/${id}`),
   getStats: () => api.get('/contact/stats/overview'),
 };
+
+// Assignment Evaluations API
+export { assignmentEvaluationsAPI } from './assignmentEvaluationsAPI';
+
+// Email Verification API
+export { emailVerificationAPI } from './emailVerificationAPI';
+
+// Password Reset API
+export { passwordResetAPI } from './passwordResetAPI';
+
+// Teacher Collaboration API
+export { teacherCollaborationAPI } from './teacherCollaborationAPI';
+
+// Upload API
+export { uploadAPI } from './uploadAPI';
 
 export default api;

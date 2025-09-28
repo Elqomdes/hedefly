@@ -37,6 +37,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      console.log('Login attempt:', formData.email);
       const result = await login(formData.email, formData.password);
       
       if (result.success) {
@@ -44,10 +45,20 @@ export default function Login() {
         const redirectPath = result.user.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
         router.push(redirectPath);
       } else {
+        console.error('Login failed:', result.error);
         toast.error(result.error);
       }
     } catch (error) {
-      toast.error('Giriş yapılırken bir hata oluştu');
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Giriş yapılırken bir hata oluştu';
+      toast.error(errorMessage);
+      
+      // MongoDB bağlantı hatası durumunda özel mesaj
+      if (error.response?.status === 503) {
+        toast.error('Veritabanı bağlantısı yok. Lütfen daha sonra tekrar deneyin.');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -11,9 +11,9 @@ import {
   KeyIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
-import { authAPI } from '../../lib/api';
+import { authAPI } from '../lib/api';
 import toast from 'react-hot-toast';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function StudentSettings() {
   const [user, setUser] = useState(null);

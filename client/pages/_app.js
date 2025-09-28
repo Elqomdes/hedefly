@@ -6,6 +6,7 @@ import '../styles/globals.css';
 import { AuthProvider } from '../contexts/AuthContext';
 import { LoadingProvider } from '../contexts/LoadingContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
+import ErrorBoundary from '../components/ui/ErrorBoundary';
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -35,49 +36,51 @@ function MyApp({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       
-      <AuthProvider>
-        <LoadingProvider>
-          <NotificationProvider>
-            <div className="min-h-screen bg-gray-50">
-            {isLoading && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                  <p className="text-sm text-gray-600">Yükleniyor...</p>
+      <ErrorBoundary>
+        <AuthProvider>
+          <LoadingProvider>
+            <NotificationProvider>
+              <div className="min-h-screen bg-gray-50">
+              {isLoading && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="text-sm text-gray-600">Yükleniyor...</p>
+                  </div>
                 </div>
+              )}
+              
+              <Component {...pageProps} />
+              
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                  style: {
+                    background: '#363636',
+                    color: '#fff',
+                  },
+                  success: {
+                    duration: 3000,
+                    iconTheme: {
+                      primary: '#22c55e',
+                      secondary: '#fff',
+                    },
+                  },
+                  error: {
+                    duration: 5000,
+                    iconTheme: {
+                      primary: '#ef4444',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
               </div>
-            )}
-            
-            <Component {...pageProps} />
-            
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#363636',
-                  color: '#fff',
-                },
-                success: {
-                  duration: 3000,
-                  iconTheme: {
-                    primary: '#22c55e',
-                    secondary: '#fff',
-                  },
-                },
-                error: {
-                  duration: 5000,
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
-                  },
-                },
-              }}
-            />
-            </div>
-          </NotificationProvider>
-        </LoadingProvider>
-      </AuthProvider>
+            </NotificationProvider>
+          </LoadingProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </>
   );
 }
